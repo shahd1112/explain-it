@@ -1,98 +1,280 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import CategorySelector from '../components/CategorySelector';
+import LevelSelector from '../components/LevelSelector';
+import QuizCard from '../components/QuizCard';
+import TermCard from '../components/TermCard';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+import { useLearning } from '../hooks/useLearning';
+
+import {
+  LearningProvider,
+} from '../context/LearningContext';
+
+function LearningScreen() {
+  const {
+    category,
+    currentTerm,
+
+    learnedCount,
+    favoriteCount,
+    totalTerms,
+
+    isLearned,
+    isFavorite,
+
+    selectCategory,
+    nextTerm,
+    learnedTerm,
+    toggleFavorite,
+    resetLearning,
+  } = useLearning();
+
+  const progress =
+    totalTerms === 0
+      ? 0
+      : Math.round(
+          (learnedCount / totalTerms) * 100
+        );
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <ScrollView
+      contentContainerStyle={styles.container}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.logo}>
+          🧠
+        </Text>
+
+        <Text style={styles.title}>
+          Explain It
+        </Text>
+
+        <Text style={styles.subtitle}>
+          افهم المصطلحات التقنية بطريقة أبسط
+        </Text>
+      </View>
+
+      {/* Level */}
+      <LevelSelector />
+
+      {/* Categories */}
+      <CategorySelector
+        selectedCategory={category}
+        onSelectCategory={selectCategory}
+      />
+
+      {/* Current Term */}
+      <TermCard
+        term={currentTerm}
+        isLearned={isLearned}
+        isFavorite={isFavorite}
+        onNext={nextTerm}
+        onLearned={learnedTerm}
+        onFavorite={toggleFavorite}
+      />
+
+      {/* Progress */}
+      <View style={styles.progressCard}>
+        <Text style={styles.progressTitle}>
+          📊 تقدمك
+        </Text>
+
+        <Text style={styles.counter}>
+          {learnedCount} / {totalTerms}
+        </Text>
+
+        <Text style={styles.counterLabel}>
+          مصطلح تم تعلمه
+        </Text>
+
+        <View style={styles.progressBackground}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width: `${progress}%`,
+              },
+            ]}
+          />
+        </View>
+
+        <Text style={styles.percentage}>
+          {progress}%
+        </Text>
+
+        <View style={styles.statsRow}>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>
+              {learnedCount}
+            </Text>
+
+            <Text style={styles.statLabel}>
+              ✓ تعلمت
+            </Text>
+          </View>
+
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>
+              {favoriteCount}
+            </Text>
+
+            <Text style={styles.statLabel}>
+              ⭐ محفوظ
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Quiz */}
+      <QuizCard />
+
+      {/* Reset Learning */}
+      <Pressable
+        style={styles.resetButton}
+        onPress={resetLearning}
+      >
+        <Text style={styles.resetText}>
+          ↻ إعادة التعيين
+        </Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 
 export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <LearningProvider>
+      <LearningScreen />
+    </LearningProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+    flexGrow: 1,
+    backgroundColor: '#F6F7FB',
+    paddingHorizontal: 22,
+    paddingTop: 60,
+    paddingBottom: 40,
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
   },
-  heroSection: {
+
+  header: {
     alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    marginBottom: 25,
   },
+
+  logo: {
+    fontSize: 45,
+  },
+
   title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginTop: 5,
+  },
+
+  subtitle: {
+    fontSize: 15,
+    color: '#64748B',
+    marginTop: 6,
     textAlign: 'center',
   },
-  code: {
-    textTransform: 'uppercase',
+
+  progressCard: {
+    width: '100%',
+    maxWidth: 430,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+
+  progressTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#334155',
+  },
+
+  counter: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#7C3AED',
+    marginTop: 10,
+  },
+
+  counterLabel: {
+    color: '#64748B',
+    marginTop: 2,
+  },
+
+  progressBackground: {
+    width: '100%',
+    height: 12,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginTop: 18,
+  },
+
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#7C3AED',
+    borderRadius: 20,
+  },
+
+  percentage: {
+    color: '#7C3AED',
+    fontWeight: 'bold',
+    marginTop: 7,
+  },
+
+  statsRow: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 18,
+  },
+
+  stat: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+  },
+
+  statNumber: {
+    fontSize: 23,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+
+  statLabel: {
+    color: '#64748B',
+    marginTop: 3,
+  },
+
+  resetButton: {
+    marginTop: 18,
+    backgroundColor: '#1E293B',
+    paddingVertical: 13,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+  },
+
+  resetText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });
