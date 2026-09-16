@@ -1,35 +1,46 @@
 import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 
 import {
-  LearningLevel,
-  useLearningContext,
-} from '../context/LearningContext';
+    useLearningContext,
+} from '@/context/LearningContext';
+
+import type {
+    LearningLevel,
+} from '@/data/terms';
 
 export default function LevelSelector() {
-  const { level, setLevel } = useLearningContext();
+  const {
+    level,
+    setLevel,
+  } = useLearningContext();
 
-  function selectLevel(newLevel: LearningLevel) {
+  function selectLevel(
+    newLevel: LearningLevel
+  ) {
     setLevel(newLevel);
   }
 
   return (
     <View style={styles.card}>
       <Text style={styles.title}>
-        🎯 مستوى الشرح
+        🎯 Explanation Level
       </Text>
 
       <View style={styles.buttons}>
         <Pressable
           style={[
             styles.button,
-            level === 'Beginner' && styles.selected,
+            level === 'Beginner' &&
+              styles.selected,
           ]}
-          onPress={() => selectLevel('Beginner')}
+          onPress={() =>
+            selectLevel('Beginner')
+          }
         >
           <Text
             style={[
@@ -38,7 +49,7 @@ export default function LevelSelector() {
                 styles.selectedText,
             ]}
           >
-            🌱 مبتدئ
+            🌱 Beginner
           </Text>
         </Pressable>
 
@@ -59,7 +70,28 @@ export default function LevelSelector() {
                 styles.selectedText,
             ]}
           >
-            🚀 متوسط
+            🚀 Intermediate
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.button,
+            level === 'Advanced' &&
+              styles.selected,
+          ]}
+          onPress={() =>
+            selectLevel('Advanced')
+          }
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              level === 'Advanced' &&
+                styles.selectedText,
+            ]}
+          >
+            🔥 Advanced
           </Text>
         </Pressable>
       </View>
@@ -70,7 +102,7 @@ export default function LevelSelector() {
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    maxWidth: 430,
+    maxWidth: 700,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
@@ -80,19 +112,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'right',
     color: '#1E293B',
     marginBottom: 14,
   },
 
   buttons: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
   },
 
   button: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: 'center',
@@ -105,6 +138,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#475569',
     fontWeight: 'bold',
+    fontSize: 12,
   },
 
   selectedText: {

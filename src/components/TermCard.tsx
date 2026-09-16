@@ -5,119 +5,223 @@ import {
     View,
 } from 'react-native';
 
+import type {
+    Term,
+} from '@/data/terms';
+
 import {
     useLearningContext,
-} from '../context/LearningContext';
+} from '@/context/LearningContext';
 
-export type Term = {
-  name: string;
-  explanation: string;
-  example: string;
-};
+import {
+    useSettings,
+} from '@/context/SettingsContext';
 
 type Props = {
   term: Term;
-  isLearned: boolean;
-  isFavorite: boolean;
   onNext: () => void;
-  onLearned: () => void;
-  onFavorite: () => void;
 };
 
 export default function TermCard({
   term,
-  isLearned,
-  isFavorite,
   onNext,
-  onLearned,
-  onFavorite,
 }: Props) {
-  const { level } = useLearningContext();
+  const {
+    level,
+    markLearned,
+    toggleFavorite,
+    isLearned,
+    isFavorite,
+  } = useLearningContext();
+
+  const {
+    theme,
+    language,
+  } = useSettings();
+
+  const isDark =
+    theme === 'dark';
+
+  const isArabic =
+    language === 'ar';
+
+  const learned =
+    isLearned(term.id);
+
+  const favorite =
+    isFavorite(term.id);
+
+  function getLevelText() {
+    if (level === 'Beginner') {
+      return isArabic
+        ? '🌱 مبتدئ'
+        : '🌱 Beginner';
+    }
+
+    if (level === 'Intermediate') {
+      return isArabic
+        ? '🚀 متوسط'
+        : '🚀 Intermediate';
+    }
+
+    return isArabic
+      ? '🔥 متقدم'
+      : '🔥 Advanced';
+  }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.topRow}>
-        <Text style={styles.level}>
-          {level === 'Beginner'
-            ? '🌱 مبتدئ'
-            : '🚀 متوسط'}
-        </Text>
+    <View
+      style={[
+        styles.card,
+        isDark && styles.darkCard,
+      ]}
+    >
+      <View style={styles.top}>
+        <View
+          style={[
+            styles.levelBadge,
+            isDark &&
+              styles.darkLevelBadge,
+          ]}
+        >
+          <Text style={styles.levelText}>
+            {getLevelText()}
+          </Text>
+        </View>
 
         <Pressable
           style={[
-            styles.favoriteButton,
-            isFavorite &&
-              styles.favoriteButtonActive,
+            styles.favorite,
+
+            isDark &&
+              styles.darkFavorite,
+
+            favorite &&
+              styles.favoriteActive,
           ]}
-          onPress={onFavorite}
+          onPress={() =>
+            toggleFavorite(term.id)
+          }
         >
-          <Text style={styles.favoriteText}>
-            {isFavorite
-              ? '★ محفوظ'
-              : '☆ حفظ'}
+          <Text
+            style={[
+              styles.favoriteText,
+
+              isDark &&
+                styles.darkSecondaryText,
+
+              favorite &&
+                styles.favoriteActiveText,
+            ]}
+          >
+            {favorite
+              ? isArabic
+                ? '★ محفوظ'
+                : '★ Saved'
+              : isArabic
+                ? '☆ المفضلة'
+                : '☆ Favorite'}
           </Text>
         </Pressable>
       </View>
 
-      <Text style={styles.label}>
-        مصطلح تقني
+      <Text style={styles.smallTitle}>
+        {isArabic
+          ? 'مصطلح تقني'
+          : 'TECHNICAL TERM'}
       </Text>
 
-      <Text style={styles.term}>
+      <Text
+        style={[
+          styles.termName,
+          isDark && styles.darkText,
+        ]}
+      >
         {term.name}
       </Text>
 
-      {isLearned && (
-        <View style={styles.learnedBadge}>
-          <Text style={styles.learnedBadgeText}>
-            ✓ تم تعلمه
-          </Text>
-        </View>
+      {learned && (
+        <Text style={styles.learned}>
+          {isArabic
+            ? '✓ تم تعلمه'
+            : '✓ Learned'}
+        </Text>
       )}
 
-      <Text style={styles.explanation}>
-        {term.explanation}
+      <Text
+        style={[
+          styles.explanation,
+          isDark &&
+            styles.darkSecondaryText,
+        ]}
+      >
+        {term.explanations[level]}
       </Text>
 
-      {level === 'Intermediate' && (
-        <Text style={styles.extraInfo}>
-          🔎 حاول ربط هذا المصطلح بمثال عملي
-          من التطبيقات أو الأنظمة التي تستخدمها.
+      <View
+        style={[
+          styles.example,
+          isDark &&
+            styles.darkExample,
+        ]}
+      >
+        <Text
+          style={[
+            styles.exampleTitle,
+            isDark && styles.darkText,
+          ]}
+        >
+          {isArabic
+            ? '💡 مثال'
+            : '💡 Example'}
         </Text>
-      )}
 
-      <View style={styles.exampleBox}>
-        <Text style={styles.exampleTitle}>
-          💡 مثال
-        </Text>
-
-        <Text style={styles.example}>
+        <Text
+          style={[
+            styles.exampleText,
+            isDark &&
+              styles.darkSecondaryText,
+          ]}
+        >
           {term.example}
         </Text>
       </View>
 
       <View style={styles.buttons}>
         <Pressable
-          style={styles.nextButton}
+          style={[
+            styles.nextButton,
+            isDark &&
+              styles.darkNextButton,
+          ]}
           onPress={onNext}
         >
           <Text style={styles.nextText}>
-            مصطلح آخر 🔄
+            {isArabic
+              ? '← المصطلح التالي'
+              : 'Next Term →'}
           </Text>
         </Pressable>
 
         <Pressable
           style={[
-            styles.learnedButton,
-            isLearned &&
-              styles.alreadyLearnedButton,
+            styles.learnButton,
+
+            learned &&
+              styles.learnedButton,
           ]}
-          onPress={onLearned}
+          onPress={() =>
+            markLearned(term.id)
+          }
         >
-          <Text style={styles.learnedText}>
-            {isLearned
-              ? 'التالي ✓'
-              : 'فهمته ✓'}
+          <Text style={styles.learnText}>
+            {learned
+              ? isArabic
+                ? '✓ تم تعلمه'
+                : '✓ Learned'
+              : isArabic
+                ? 'تحديد كمتعلّم'
+                : 'Mark Learned'}
           </Text>
         </Pressable>
       </View>
@@ -127,109 +231,114 @@ export default function TermCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: '100%',
-    maxWidth: 430,
-    backgroundColor: '#EDE9FE',
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 22,
+    marginTop: 18,
   },
 
-  topRow: {
+  darkCard: {
+    backgroundColor: '#1E293B',
+  },
+
+  top: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
 
-  level: {
-    fontSize: 12,
-    color: '#7C3AED',
-    fontWeight: 'bold',
-  },
-
-  favoriteButton: {
-    backgroundColor: '#FFFFFF',
+  levelBadge: {
+    backgroundColor: '#EDE9FE',
+    paddingHorizontal: 11,
     paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    borderRadius: 10,
   },
 
-  favoriteButtonActive: {
+  darkLevelBadge: {
+    backgroundColor: '#312E81',
+  },
+
+  levelText: {
+    color: '#8B5CF6',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+
+  favorite: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+
+  darkFavorite: {
+    borderColor: '#475569',
+    backgroundColor: '#334155',
+  },
+
+  favoriteActive: {
     backgroundColor: '#FEF3C7',
+    borderColor: '#FDE68A',
   },
 
   favoriteText: {
-    color: '#7C3AED',
-    fontWeight: 'bold',
-  },
-
-  label: {
-    textAlign: 'center',
-    color: '#7C3AED',
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 14,
-  },
-
-  term: {
-    textAlign: 'center',
-    fontSize: 35,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginTop: 8,
-  },
-
-  learnedBadge: {
-    alignSelf: 'center',
-    backgroundColor: '#DCFCE7',
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginTop: 8,
-  },
-
-  learnedBadgeText: {
-    color: '#15803D',
+    color: '#475569',
+    fontWeight: '700',
     fontSize: 12,
-    fontWeight: 'bold',
+  },
+
+  favoriteActiveText: {
+    color: '#92400E',
+  },
+
+  smallTitle: {
+    color: '#7C3AED',
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 24,
+  },
+
+  termName: {
+    color: '#1E293B',
+    fontSize: 29,
+    fontWeight: '800',
+    marginTop: 5,
+  },
+
+  learned: {
+    color: '#16A34A',
+    fontWeight: '700',
+    marginTop: 6,
   },
 
   explanation: {
-    fontSize: 17,
-    textAlign: 'center',
-    lineHeight: 27,
-    color: '#334155',
-    marginTop: 15,
-  },
-
-  extraInfo: {
-    backgroundColor: '#DDD6FE',
-    color: '#5B21B6',
-    padding: 12,
-    borderRadius: 12,
-    textAlign: 'right',
-    lineHeight: 21,
-    marginTop: 15,
-  },
-
-  exampleBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 15,
-    marginTop: 20,
-  },
-
-  exampleTitle: {
-    fontWeight: 'bold',
-    color: '#7C3AED',
-    textAlign: 'right',
-    marginBottom: 5,
+    color: '#475569',
+    lineHeight: 24,
+    fontSize: 15,
+    marginTop: 17,
   },
 
   example: {
-    color: '#475569',
-    textAlign: 'right',
-    lineHeight: 21,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 15,
+    marginTop: 18,
+  },
+
+  darkExample: {
+    backgroundColor: '#334155',
+  },
+
+  exampleTitle: {
+    color: '#1E293B',
+    fontWeight: '800',
+  },
+
+  exampleText: {
+    color: '#64748B',
+    lineHeight: 20,
+    marginTop: 6,
   },
 
   buttons: {
@@ -242,30 +351,42 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: '#7C3AED',
-    padding: 12,
-    borderRadius: 12,
+    borderRadius: 13,
+    paddingVertical: 13,
     alignItems: 'center',
   },
 
-  learnedButton: {
-    flex: 1,
-    backgroundColor: '#7C3AED',
-    padding: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-
-  alreadyLearnedButton: {
-    backgroundColor: '#16A34A',
+  darkNextButton: {
+    backgroundColor: '#0F172A',
   },
 
   nextText: {
     color: '#7C3AED',
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
 
-  learnedText: {
+  learnButton: {
+    flex: 1,
+    backgroundColor: '#7C3AED',
+    borderRadius: 13,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+
+  learnedButton: {
+    backgroundColor: '#16A34A',
+  },
+
+  learnText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '800',
+  },
+
+  darkText: {
+    color: '#F8FAFC',
+  },
+
+  darkSecondaryText: {
+    color: '#CBD5E1',
   },
 });
