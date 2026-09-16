@@ -43,11 +43,30 @@ export default function SettingsScreen() {
   const [message, setMessage] =
     useState('');
 
+  const [messageType, setMessageType] =
+    useState<'success' | 'error'>(
+      'success'
+    );
+
+  const [savingName, setSavingName] =
+    useState(false);
+
   const isDark =
     theme === 'dark';
 
-  function saveName() {
-    if (!name.trim()) {
+  // ========================================
+  // SAVE NAME
+  // ========================================
+
+  async function saveName() {
+    const cleanName =
+      name.trim();
+
+    setMessage('');
+
+    if (!cleanName) {
+      setMessageType('error');
+
       setMessage(
         language === 'ar'
           ? 'الاسم لا يمكن أن يكون فارغًا.'
@@ -57,14 +76,64 @@ export default function SettingsScreen() {
       return;
     }
 
-    updateName(name);
+    if (cleanName.length < 2) {
+      setMessageType('error');
 
-    setMessage(
-      language === 'ar'
-        ? 'تم تحديث الاسم بنجاح ✓'
-        : 'Name updated successfully ✓'
-    );
+      setMessage(
+        language === 'ar'
+          ? 'يجب أن يتكون الاسم من حرفين على الأقل.'
+          : 'Name must be at least 2 characters.'
+      );
+
+      return;
+    }
+
+    try {
+      setSavingName(true);
+
+      const success =
+        await updateName(cleanName);
+
+      if (success) {
+        setName(cleanName);
+
+        setMessageType('success');
+
+        setMessage(
+          language === 'ar'
+            ? 'تم تحديث الاسم بنجاح ✓'
+            : 'Name updated successfully ✓'
+        );
+      } else {
+        setMessageType('error');
+
+        setMessage(
+          language === 'ar'
+            ? 'تعذر تحديث الاسم. حاولي مرة أخرى.'
+            : 'Could not update name. Please try again.'
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Save name error:',
+        error
+      );
+
+      setMessageType('error');
+
+      setMessage(
+        language === 'ar'
+          ? 'حدث خطأ أثناء تحديث الاسم.'
+          : 'An error occurred while updating the name.'
+      );
+    } finally {
+      setSavingName(false);
+    }
   }
+
+  // ========================================
+  // LOGOUT
+  // ========================================
 
   function handleLogout() {
     logout();
@@ -76,14 +145,18 @@ export default function SettingsScreen() {
     <View
       style={[
         styles.screen,
-        isDark && styles.darkScreen,
+        isDark &&
+          styles.darkScreen,
       ]}
     >
       <ScrollView
         contentContainerStyle={
           styles.container
         }
+        keyboardShouldPersistTaps="handled"
       >
+        {/* HEADER */}
+
         <View style={styles.header}>
           <Pressable
             style={[
@@ -381,28 +454,50 @@ export default function SettingsScreen() {
                 : 'Enter your name'
             }
             placeholderTextColor="#94A3B8"
+            editable={!savingName}
           />
 
           {message !== '' && (
             <Text
-              style={styles.message}
+              style={[
+                styles.message,
+
+                messageType ===
+                  'success'
+                  ? styles.successMessage
+                  : styles.errorMessage,
+              ]}
             >
               {message}
             </Text>
           )}
 
           <Pressable
-            style={styles.saveButton}
+            style={({ pressed }) => [
+              styles.saveButton,
+
+              savingName &&
+                styles.disabledButton,
+
+              pressed &&
+                !savingName &&
+                styles.buttonPressed,
+            ]}
             onPress={saveName}
+            disabled={savingName}
           >
             <Text
               style={
                 styles.saveButtonText
               }
             >
-              {language === 'ar'
-                ? 'حفظ الاسم'
-                : 'Save Name'}
+              {savingName
+                ? language === 'ar'
+                  ? 'جارٍ الحفظ...'
+                  : 'Saving...'
+                : language === 'ar'
+                  ? 'حفظ الاسم'
+                  : 'Save Name'}
             </Text>
           </Pressable>
         </View>
@@ -456,6 +551,7 @@ export default function SettingsScreen() {
           <Pressable
             style={({ pressed }) => [
               styles.logoutButton,
+
               pressed &&
                 styles.buttonPressed,
             ]}
@@ -648,10 +744,25 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
+  disabledButton: {
+    opacity: 0.6,
+  },
+
+  buttonPressed: {
+    opacity: 0.82,
+  },
+
   message: {
-    color: '#16A34A',
     fontWeight: '700',
     marginTop: 10,
+  },
+
+  successMessage: {
+    color: '#16A34A',
+  },
+
+  errorMessage: {
+    color: '#DC2626',
   },
 
   logoutButton: {
@@ -665,10 +776,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 15,
-  },
-
-  buttonPressed: {
-    opacity: 0.82,
   },
 
   infoCard: {

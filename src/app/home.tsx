@@ -1,9 +1,9 @@
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 import { router } from 'expo-router';
@@ -11,15 +11,15 @@ import { router } from 'expo-router';
 import AppScreen from '@/components/AppScreen';
 
 import {
-    useAuth,
+  useAuth,
 } from '@/context/AuthContext';
 
 import {
-    useLearningContext,
+  useLearningContext,
 } from '@/context/LearningContext';
 
 import {
-    useSettings,
+  useSettings,
 } from '@/context/SettingsContext';
 
 type SubjectCardProps = {
@@ -112,6 +112,10 @@ export default function HomeScreen() {
           styles.container
         }
       >
+        {/* ==========================================
+            HEADER
+        ========================================== */}
+
         <View style={styles.header}>
           <View style={styles.headerText}>
             <Text
@@ -122,10 +126,12 @@ export default function HomeScreen() {
             >
               {isArabic
                 ? `مرحباً، ${
-                    user?.name || 'Student'
+                    user?.name ||
+                    'Student'
                   } 👋`
                 : `Hello, ${
-                    user?.name || 'Student'
+                    user?.name ||
+                    'Student'
                   } 👋`}
             </Text>
 
@@ -151,10 +157,15 @@ export default function HomeScreen() {
             <Text style={styles.avatarText}>
               {user?.name
                 ?.charAt(0)
-                .toUpperCase() || 'S'}
+                .toUpperCase() ||
+                'S'}
             </Text>
           </Pressable>
         </View>
+
+        {/* ==========================================
+            DAILY MOTIVATION
+        ========================================== */}
 
         <View
           style={[
@@ -197,11 +208,61 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        <View style={styles.sectionHeader}>
+        {/* ==========================================
+            AI ASSISTANT
+        ========================================== */}
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.aiCard,
+            isDark &&
+              styles.darkAiCard,
+            pressed &&
+              styles.pressed,
+          ]}
+          onPress={() =>
+            router.push('/ai-chat')
+          }
+        >
+          <View style={styles.aiIcon}>
+            <Text style={styles.aiEmoji}>
+              🤖
+            </Text>
+          </View>
+
+          <View style={styles.aiContent}>
+            <Text style={styles.aiTitle}>
+              {isArabic
+                ? 'اسأل Explain It'
+                : 'Ask Explain It'}
+            </Text>
+
+            <Text style={styles.aiDescription}>
+              {isArabic
+                ? 'اسأل عن البرمجة والتكنولوجيا وأي موضوع تعليمي.'
+                : 'Ask about programming, technology, and any educational topic.'}
+            </Text>
+          </View>
+
+          <Text style={styles.aiArrow}>
+            {isArabic
+              ? '‹'
+              : '›'}
+          </Text>
+        </Pressable>
+
+        {/* ==========================================
+            EXPLORE SUBJECTS
+        ========================================== */}
+
+        <View
+          style={styles.sectionHeader}
+        >
           <Text
             style={[
               styles.sectionTitle,
-              isDark && styles.darkText,
+              isDark &&
+                styles.darkText,
             ]}
           >
             {isArabic
@@ -288,10 +349,15 @@ export default function HomeScreen() {
           />
         </View>
 
+        {/* ==========================================
+            PROGRESS
+        ========================================== */}
+
         <Text
           style={[
             styles.sectionTitle,
-            isDark && styles.darkText,
+            isDark &&
+              styles.darkText,
           ]}
         >
           {isArabic
@@ -299,14 +365,23 @@ export default function HomeScreen() {
             : 'Your Progress'}
         </Text>
 
-        <View style={styles.statsContainer}>
+        <View
+          style={
+            styles.statsContainer
+          }
+        >
           <View
             style={[
               styles.statCard,
-              isDark && styles.darkCard,
+              isDark &&
+                styles.darkCard,
             ]}
           >
-            <Text style={styles.statNumber}>
+            <Text
+              style={
+                styles.statNumber
+              }
+            >
               {learnedTerms.length}
             </Text>
 
@@ -326,10 +401,15 @@ export default function HomeScreen() {
           <View
             style={[
               styles.statCard,
-              isDark && styles.darkCard,
+              isDark &&
+                styles.darkCard,
             ]}
           >
-            <Text style={styles.statNumber}>
+            <Text
+              style={
+                styles.statNumber
+              }
+            >
               {favoriteTerms.length}
             </Text>
 
@@ -349,10 +429,15 @@ export default function HomeScreen() {
           <View
             style={[
               styles.statCard,
-              isDark && styles.darkCard,
+              isDark &&
+                styles.darkCard,
             ]}
           >
-            <Text style={styles.statNumber}>
+            <Text
+              style={
+                styles.statNumber
+              }
+            >
               {quizzesCompleted}
             </Text>
 
@@ -372,10 +457,15 @@ export default function HomeScreen() {
           <View
             style={[
               styles.statCard,
-              isDark && styles.darkCard,
+              isDark &&
+                styles.darkCard,
             ]}
           >
-            <Text style={styles.statNumber}>
+            <Text
+              style={
+                styles.statNumber
+              }
+            >
               {bestQuizScore}%
             </Text>
 
@@ -393,25 +483,36 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* ==========================================
+            QUIZ
+        ========================================== */}
+
         <Pressable
           style={({ pressed }) => [
             styles.quizCard,
             isDark &&
               styles.darkQuizCard,
-            pressed && styles.pressed,
+            pressed &&
+              styles.pressed,
           ]}
           onPress={() =>
             router.push('/quiz')
           }
         >
           <View style={styles.quizIcon}>
-            <Text style={styles.quizEmoji}>
+            <Text
+              style={styles.quizEmoji}
+            >
               🧠
             </Text>
           </View>
 
-          <View style={styles.quizContent}>
-            <Text style={styles.quizTitle}>
+          <View
+            style={styles.quizContent}
+          >
+            <Text
+              style={styles.quizTitle}
+            >
               {isArabic
                 ? 'جاهز للتحدي؟'
                 : 'Ready for a challenge?'}
@@ -429,7 +530,9 @@ export default function HomeScreen() {
           </View>
 
           <Text style={styles.arrow}>
-            {isArabic ? '‹' : '›'}
+            {isArabic
+              ? '‹'
+              : '›'}
           </Text>
         </Pressable>
       </ScrollView>
@@ -437,259 +540,370 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#F7F7FC',
-  },
+const styles =
+  StyleSheet.create({
+    // ========================================
+    // SCREEN
+    // ========================================
 
-  darkScreen: {
-    backgroundColor: '#0F172A',
-  },
-
-  container: {
-    width: '100%',
-    maxWidth: 700,
-    alignSelf: 'center',
-    paddingHorizontal: 22,
-    paddingTop: 35,
-    paddingBottom: 35,
-  },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  headerText: {
-    flex: 1,
-    paddingRight: 15,
-  },
-
-  hello: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#1E293B',
-  },
-
-  subtitle: {
-    color: '#64748B',
-    marginTop: 5,
-    lineHeight: 21,
-  },
-
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#7C3AED',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  avatarText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 20,
-  },
-
-  motivationCard: {
-    backgroundColor: '#EDE9FE',
-    borderRadius: 22,
-    padding: 21,
-    marginTop: 27,
-    marginBottom: 29,
-  },
-
-  darkMotivationCard: {
-    backgroundColor: '#312E81',
-  },
-
-  motivationLabel: {
-    color: '#7C3AED',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-
-  motivationTitle: {
-    color: '#1E293B',
-    fontSize: 20,
-    fontWeight: '800',
-    marginTop: 8,
-  },
-
-  motivationText: {
-    color: '#475569',
-    marginTop: 6,
-    lineHeight: 21,
-  },
-
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1E293B',
-    marginBottom: 15,
-  },
-
-  sectionHint: {
-    color: '#7C3AED',
-    fontWeight: '600',
-    marginBottom: 15,
-  },
-
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 30,
-  },
-
-  subjectCard: {
-    width: '48%',
-    minHeight: 155,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 19,
-    padding: 17,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    screen: {
+      flex: 1,
+      backgroundColor:
+        '#F7F7FC',
     },
-    elevation: 2,
-  },
 
-  subjectIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#F5F3FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    darkScreen: {
+      backgroundColor:
+        '#0F172A',
+    },
 
-  darkSubjectIcon: {
-    backgroundColor: '#334155',
-  },
+    container: {
+      width: '100%',
+      maxWidth: 700,
+      alignSelf: 'center',
+      paddingHorizontal: 22,
+      paddingTop: 35,
+      paddingBottom: 35,
+    },
 
-  subjectEmoji: {
-    fontSize: 25,
-  },
+    // ========================================
+    // HEADER
+    // ========================================
 
-  subjectTitle: {
-    color: '#1E293B',
-    fontSize: 15,
-    fontWeight: '800',
-    marginTop: 13,
-  },
+    header: {
+      flexDirection: 'row',
+      justifyContent:
+        'space-between',
+      alignItems: 'center',
+    },
 
-  subjectDescription: {
-    color: '#64748B',
-    fontSize: 12,
-    lineHeight: 17,
-    marginTop: 5,
-  },
+    headerText: {
+      flex: 1,
+      paddingRight: 15,
+    },
 
-  statsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 25,
-  },
+    hello: {
+      fontSize: 26,
+      fontWeight: '800',
+      color: '#1E293B',
+    },
 
-  statCard: {
-    flexGrow: 1,
-    flexBasis: '22%',
-    minWidth: 100,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 17,
-    alignItems: 'center',
-  },
+    subtitle: {
+      color: '#64748B',
+      marginTop: 5,
+      lineHeight: 21,
+    },
 
-  statNumber: {
-    color: '#7C3AED',
-    fontSize: 22,
-    fontWeight: '800',
-  },
+    avatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor:
+        '#7C3AED',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+    },
 
-  statLabel: {
-    color: '#64748B',
-    fontSize: 12,
-    marginTop: 4,
-  },
+    avatarText: {
+      color: '#FFFFFF',
+      fontWeight: '800',
+      fontSize: 20,
+    },
 
-  quizCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 21,
-    padding: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+    // ========================================
+    // MOTIVATION
+    // ========================================
 
-  darkQuizCard: {
-    backgroundColor: '#334155',
-  },
+    motivationCard: {
+      backgroundColor:
+        '#EDE9FE',
+      borderRadius: 22,
+      padding: 21,
+      marginTop: 27,
+      marginBottom: 20,
+    },
 
-  quizIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    backgroundColor: '#475569',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    darkMotivationCard: {
+      backgroundColor:
+        '#312E81',
+    },
 
-  quizEmoji: {
-    fontSize: 27,
-  },
+    motivationLabel: {
+      color: '#7C3AED',
+      fontSize: 12,
+      fontWeight: '800',
+    },
 
-  quizContent: {
-    flex: 1,
-    paddingHorizontal: 14,
-  },
+    motivationTitle: {
+      color: '#1E293B',
+      fontSize: 20,
+      fontWeight: '800',
+      marginTop: 8,
+    },
 
-  quizTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
-  },
+    motivationText: {
+      color: '#475569',
+      marginTop: 6,
+      lineHeight: 21,
+    },
 
-  quizDescription: {
-    color: '#CBD5E1',
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 4,
-  },
+    // ========================================
+    // AI CARD
+    // ========================================
 
-  arrow: {
-    color: '#FFFFFF',
-    fontSize: 30,
-  },
+    aiCard: {
+      backgroundColor:
+        '#7C3AED',
+      borderRadius: 21,
+      padding: 18,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 29,
+    },
 
-  darkCard: {
-    backgroundColor: '#1E293B',
-  },
+    darkAiCard: {
+      backgroundColor:
+        '#5B21B6',
+    },
 
-  darkText: {
-    color: '#F8FAFC',
-  },
+    aiIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 16,
+      backgroundColor:
+        '#FFFFFF',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+    },
 
-  darkSecondaryText: {
-    color: '#CBD5E1',
-  },
+    aiEmoji: {
+      fontSize: 28,
+    },
 
-  pressed: {
-    opacity: 0.82,
-  },
-});
+    aiContent: {
+      flex: 1,
+      paddingHorizontal: 14,
+    },
+
+    aiTitle: {
+      color: '#FFFFFF',
+      fontSize: 17,
+      fontWeight: '800',
+    },
+
+    aiDescription: {
+      color: '#EDE9FE',
+      fontSize: 12,
+      lineHeight: 18,
+      marginTop: 4,
+    },
+
+    aiArrow: {
+      color: '#FFFFFF',
+      fontSize: 30,
+    },
+
+    // ========================================
+    // SECTION
+    // ========================================
+
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent:
+        'space-between',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: '#1E293B',
+      marginBottom: 15,
+    },
+
+    sectionHint: {
+      color: '#7C3AED',
+      fontWeight: '600',
+      marginBottom: 15,
+    },
+
+    // ========================================
+    // SUBJECTS
+    // ========================================
+
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent:
+        'space-between',
+      gap: 12,
+      marginBottom: 30,
+    },
+
+    subjectCard: {
+      width: '48%',
+      minHeight: 155,
+      backgroundColor:
+        '#FFFFFF',
+      borderRadius: 19,
+      padding: 17,
+
+      shadowColor: '#000',
+      shadowOpacity: 0.04,
+      shadowRadius: 10,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+
+      elevation: 2,
+    },
+
+    subjectIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 14,
+      backgroundColor:
+        '#F5F3FF',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+    },
+
+    darkSubjectIcon: {
+      backgroundColor:
+        '#334155',
+    },
+
+    subjectEmoji: {
+      fontSize: 25,
+    },
+
+    subjectTitle: {
+      color: '#1E293B',
+      fontSize: 15,
+      fontWeight: '800',
+      marginTop: 13,
+    },
+
+    subjectDescription: {
+      color: '#64748B',
+      fontSize: 12,
+      lineHeight: 17,
+      marginTop: 5,
+    },
+
+    // ========================================
+    // STATISTICS
+    // ========================================
+
+    statsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+      marginBottom: 25,
+    },
+
+    statCard: {
+      flexGrow: 1,
+      flexBasis: '22%',
+      minWidth: 100,
+      backgroundColor:
+        '#FFFFFF',
+      borderRadius: 16,
+      paddingVertical: 17,
+      alignItems: 'center',
+    },
+
+    statNumber: {
+      color: '#7C3AED',
+      fontSize: 22,
+      fontWeight: '800',
+    },
+
+    statLabel: {
+      color: '#64748B',
+      fontSize: 12,
+      marginTop: 4,
+    },
+
+    // ========================================
+    // QUIZ
+    // ========================================
+
+    quizCard: {
+      backgroundColor:
+        '#1E293B',
+      borderRadius: 21,
+      padding: 18,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    darkQuizCard: {
+      backgroundColor:
+        '#334155',
+    },
+
+    quizIcon: {
+      width: 50,
+      height: 50,
+      borderRadius: 15,
+      backgroundColor:
+        '#475569',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+    },
+
+    quizEmoji: {
+      fontSize: 27,
+    },
+
+    quizContent: {
+      flex: 1,
+      paddingHorizontal: 14,
+    },
+
+    quizTitle: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '800',
+    },
+
+    quizDescription: {
+      color: '#CBD5E1',
+      fontSize: 12,
+      lineHeight: 18,
+      marginTop: 4,
+    },
+
+    arrow: {
+      color: '#FFFFFF',
+      fontSize: 30,
+    },
+
+    // ========================================
+    // COMMON
+    // ========================================
+
+    darkCard: {
+      backgroundColor:
+        '#1E293B',
+    },
+
+    darkText: {
+      color: '#F8FAFC',
+    },
+
+    darkSecondaryText: {
+      color: '#CBD5E1',
+    },
+
+    pressed: {
+      opacity: 0.82,
+    },
+  });

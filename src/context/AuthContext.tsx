@@ -1,15 +1,15 @@
 import {
-    createContext,
-    useContext,
-    useState,
+  createContext,
+  useContext,
+  useState,
 } from 'react';
 
 import type {
-    ReactNode,
+  ReactNode,
 } from 'react';
 
 import {
-    apiRequest,
+  apiRequest,
 } from '@/services/api';
 
 type User = {
@@ -23,6 +23,12 @@ type AuthResponse = {
   success: boolean;
   message: string;
   token: string;
+  user: User;
+};
+
+type UpdateProfileResponse = {
+  success: boolean;
+  message: string;
   user: User;
 };
 
@@ -46,7 +52,7 @@ type AuthContextType = {
 
   updateName: (
     name: string
-  ) => void;
+  ) => Promise<boolean>;
 };
 
 const AuthContext =
@@ -70,6 +76,10 @@ export function AuthProvider({
   const [loading, setLoading] =
     useState(false);
 
+  // ========================================
+  // LOGIN
+  // ========================================
+
   async function login(
     email: string,
     password: string
@@ -90,7 +100,10 @@ export function AuthProvider({
           {
             method: 'POST',
             body: {
-              email: email.trim(),
+              email:
+                email
+                  .trim()
+                  .toLowerCase(),
               password,
             },
           }
@@ -111,6 +124,10 @@ export function AuthProvider({
       setLoading(false);
     }
   }
+
+  // ========================================
+  // SIGN UP
+  // ========================================
 
   async function signup(
     name: string,
@@ -135,9 +152,12 @@ export function AuthProvider({
             method: 'POST',
             body: {
               name: name.trim(),
-              email: email
-                .trim()
-                .toLowerCase(),
+
+              email:
+                email
+                  .trim()
+                  .toLowerCase(),
+
               password,
             },
           }
@@ -159,28 +179,62 @@ export function AuthProvider({
     }
   }
 
+  // ========================================
+  // UPDATE PROFILE NAME
+  // ========================================
+
+  async function updateName(
+    name: string
+  ): Promise<boolean> {
+    const cleanName =
+      name.trim();
+
+    if (
+      !cleanName ||
+      !token
+    ) {
+      return false;
+    }
+
+    try {
+      setLoading(true);
+
+      const response =
+        await apiRequest<UpdateProfileResponse>(
+          '/auth/me',
+          {
+            method: 'PUT',
+
+            token,
+
+            body: {
+              name: cleanName,
+            },
+          }
+        );
+
+      setUser(response.user);
+
+      return true;
+    } catch (error) {
+      console.error(
+        'Update name error:',
+        error
+      );
+
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ========================================
+  // LOGOUT
+  // ========================================
+
   function logout() {
     setUser(null);
     setToken(null);
-  }
-
-  function updateName(
-    name: string
-  ) {
-    if (!name.trim()) {
-      return;
-    }
-
-    setUser((currentUser) => {
-      if (!currentUser) {
-        return null;
-      }
-
-      return {
-        ...currentUser,
-        name: name.trim(),
-      };
-    });
   }
 
   return (
