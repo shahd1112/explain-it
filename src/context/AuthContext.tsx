@@ -8,24 +8,39 @@ import type {
     ReactNode,
 } from 'react';
 
+import {
+    apiRequest,
+} from '@/services/api';
+
 type User = {
+  id: number;
   name: string;
   email: string;
+  created_at?: string;
+};
+
+type AuthResponse = {
+  success: boolean;
+  message: string;
+  token: string;
+  user: User;
 };
 
 type AuthContextType = {
   user: User | null;
+  token: string | null;
+  loading: boolean;
 
   login: (
     email: string,
     password: string
-  ) => boolean;
+  ) => Promise<boolean>;
 
   signup: (
     name: string,
     email: string,
     password: string
-  ) => boolean;
+  ) => Promise<boolean>;
 
   logout: () => void;
 
@@ -49,10 +64,16 @@ export function AuthProvider({
   const [user, setUser] =
     useState<User | null>(null);
 
-  function login(
+  const [token, setToken] =
+    useState<string | null>(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  async function login(
     email: string,
     password: string
-  ): boolean {
+  ): Promise<boolean> {
     if (
       !email.trim() ||
       !password.trim()
@@ -60,22 +81,42 @@ export function AuthProvider({
       return false;
     }
 
-    const nameFromEmail =
-      email.split('@')[0] || 'Student';
+    try {
+      setLoading(true);
 
-    setUser({
-      name: nameFromEmail,
-      email,
-    });
+      const response =
+        await apiRequest<AuthResponse>(
+          '/auth/login',
+          {
+            method: 'POST',
+            body: {
+              email: email.trim(),
+              password,
+            },
+          }
+        );
 
-    return true;
+      setUser(response.user);
+      setToken(response.token);
+
+      return true;
+    } catch (error) {
+      console.error(
+        'Login error:',
+        error
+      );
+
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function signup(
+  async function signup(
     name: string,
     email: string,
     password: string
-  ): boolean {
+  ): Promise<boolean> {
     if (
       !name.trim() ||
       !email.trim() ||
@@ -84,16 +125,43 @@ export function AuthProvider({
       return false;
     }
 
-    setUser({
-      name: name.trim(),
-      email: email.trim(),
-    });
+    try {
+      setLoading(true);
 
-    return true;
+      const response =
+        await apiRequest<AuthResponse>(
+          '/auth/signup',
+          {
+            method: 'POST',
+            body: {
+              name: name.trim(),
+              email: email
+                .trim()
+                .toLowerCase(),
+              password,
+            },
+          }
+        );
+
+      setUser(response.user);
+      setToken(response.token);
+
+      return true;
+    } catch (error) {
+      console.error(
+        'Signup error:',
+        error
+      );
+
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }
 
   function logout() {
     setUser(null);
+    setToken(null);
   }
 
   function updateName(
@@ -119,6 +187,8 @@ export function AuthProvider({
     <AuthContext.Provider
       value={{
         user,
+        token,
+        loading,
         login,
         signup,
         logout,

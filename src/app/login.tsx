@@ -16,31 +16,45 @@ import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginScreen() {
-  const { login } = useAuth();
+  const {
+    login,
+    loading,
+  } = useAuth();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] =
+    useState('');
 
-  function handleLogin() {
+  const [password, setPassword] =
+    useState('');
+
+  const [error, setError] =
+    useState('');
+
+  async function handleLogin() {
     setError('');
 
-    if (!email.trim() || !password.trim()) {
+    if (
+      !email.trim() ||
+      !password.trim()
+    ) {
       setError(
         'Please enter your email and password.'
       );
       return;
     }
 
-    const success = login(
-      email,
-      password
-    );
+    const success =
+      await login(
+        email,
+        password
+      );
 
     if (success) {
       router.replace('/home');
     } else {
-      setError('Unable to sign in.');
+      setError(
+        'Invalid email or password.'
+      );
     }
   }
 
@@ -97,6 +111,8 @@ export default function LoginScreen() {
             placeholderTextColor="#94A3B8"
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
           />
 
           <Text style={styles.label}>
@@ -110,6 +126,8 @@ export default function LoginScreen() {
             placeholder="Enter your password"
             placeholderTextColor="#94A3B8"
             secureTextEntry
+            editable={!loading}
+            onSubmitEditing={handleLogin}
           />
 
           <View
@@ -118,6 +136,7 @@ export default function LoginScreen() {
             }
           >
             <Pressable
+              disabled={loading}
               onPress={() =>
                 router.push(
                   '/forgot-password'
@@ -143,9 +162,15 @@ export default function LoginScreen() {
           )}
 
           <Pressable
+            disabled={loading}
             style={({ pressed }) => [
               styles.loginButton,
+
+              loading &&
+                styles.disabledButton,
+
               pressed &&
+                !loading &&
                 styles.buttonPressed,
             ]}
             onPress={handleLogin}
@@ -155,7 +180,9 @@ export default function LoginScreen() {
                 styles.loginButtonText
               }
             >
-              Sign In
+              {loading
+                ? 'Signing In...'
+                : 'Sign In'}
             </Text>
           </Pressable>
 
@@ -167,6 +194,7 @@ export default function LoginScreen() {
             </Text>
 
             <Pressable
+              disabled={loading}
               onPress={() =>
                 router.push('/signup')
               }
@@ -316,6 +344,10 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 22,
+  },
+
+  disabledButton: {
+    opacity: 0.6,
   },
 
   buttonPressed: {

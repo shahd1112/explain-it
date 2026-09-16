@@ -1,32 +1,33 @@
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 import {
-    router,
+  router,
 } from 'expo-router';
 
 import {
-    useState,
+  useState,
 } from 'react';
 
 import {
-    useAuth,
+  useAuth,
 } from '@/context/AuthContext';
 
 import {
-    useSettings,
+  useSettings,
 } from '@/context/SettingsContext';
 
 export default function SettingsScreen() {
   const {
     user,
     updateName,
+    logout,
   } = useAuth();
 
   const {
@@ -63,6 +64,12 @@ export default function SettingsScreen() {
         ? 'تم تحديث الاسم بنجاح ✓'
         : 'Name updated successfully ✓'
     );
+  }
+
+  function handleLogout() {
+    logout();
+
+    router.replace('/login');
   }
 
   return (
@@ -111,6 +118,8 @@ export default function SettingsScreen() {
               : 'Settings ⚙️'}
           </Text>
         </View>
+
+        {/* APPEARANCE */}
 
         <Text
           style={[
@@ -207,6 +216,8 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
         </View>
+
+        {/* LANGUAGE */}
 
         <Text
           style={[
@@ -305,6 +316,8 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* PROFILE */}
+
         <Text
           style={[
             styles.sectionTitle,
@@ -367,27 +380,19 @@ export default function SettingsScreen() {
                 ? 'اكتبي اسمك'
                 : 'Enter your name'
             }
-            placeholderTextColor={
-              isDark
-                ? '#94A3B8'
-                : '#94A3B8'
-            }
+            placeholderTextColor="#94A3B8"
           />
 
           {message !== '' && (
             <Text
-              style={
-                styles.message
-              }
+              style={styles.message}
             >
               {message}
             </Text>
           )}
 
           <Pressable
-            style={
-              styles.saveButton
-            }
+            style={styles.saveButton}
             onPress={saveName}
           >
             <Text
@@ -401,6 +406,74 @@ export default function SettingsScreen() {
             </Text>
           </Pressable>
         </View>
+
+        {/* ACCOUNT */}
+
+        <Text
+          style={[
+            styles.sectionTitle,
+            isDark &&
+              styles.darkText,
+          ]}
+        >
+          {language === 'ar'
+            ? 'الحساب'
+            : 'Account'}
+        </Text>
+
+        <View
+          style={[
+            styles.card,
+            isDark &&
+              styles.darkCard,
+          ]}
+        >
+          <Text
+            style={[
+              styles.cardTitle,
+              isDark &&
+                styles.darkText,
+            ]}
+          >
+            🚪{' '}
+            {language === 'ar'
+              ? 'تسجيل الخروج'
+              : 'Log Out'}
+          </Text>
+
+          <Text
+            style={[
+              styles.description,
+              isDark &&
+                styles.darkSecondaryText,
+            ]}
+          >
+            {language === 'ar'
+              ? 'سيتم تسجيل خروجك من حساب Explain It الحالي.'
+              : 'Sign out of your current Explain It account.'}
+          </Text>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.logoutButton,
+              pressed &&
+                styles.buttonPressed,
+            ]}
+            onPress={handleLogout}
+          >
+            <Text
+              style={
+                styles.logoutButtonText
+              }
+            >
+              {language === 'ar'
+                ? 'تسجيل الخروج'
+                : 'Log Out'}
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* INFO */}
 
         <View
           style={[
@@ -429,8 +502,8 @@ export default function SettingsScreen() {
             ]}
           >
             {language === 'ar'
-              ? 'يمكنك تخصيص المظهر واللغة والاسم من هذه الصفحة.'
-              : 'Customize your theme, language, and display name from this page.'}
+              ? 'يمكنك تخصيص المظهر واللغة والاسم وإدارة حسابك من هذه الصفحة.'
+              : 'Customize your theme, language, display name, and account from this page.'}
           </Text>
         </View>
       </ScrollView>
@@ -579,6 +652,23 @@ const styles = StyleSheet.create({
     color: '#16A34A',
     fontWeight: '700',
     marginTop: 10,
+  },
+
+  logoutButton: {
+    backgroundColor: '#DC2626',
+    borderRadius: 13,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 15,
+  },
+
+  buttonPressed: {
+    opacity: 0.82,
   },
 
   infoCard: {

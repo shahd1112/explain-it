@@ -1,42 +1,284 @@
 import { useState } from 'react';
 
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 
 import { router } from 'expo-router';
 
-export default function ForgotPasswordScreen() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+import {
+    apiRequest,
+} from '@/services/api';
 
-  function handleSendCode() {
+type ForgotPasswordResponse = {
+  success: boolean;
+  message: string;
+};
+
+type Step =
+  | 'email'
+  | 'code'
+  | 'password'
+  | 'success';
+
+export default function ForgotPasswordScreen() {
+  const [step, setStep] =
+    useState<Step>('email');
+
+  const [email, setEmail] =
+    useState('');
+
+  const [code, setCode] =
+    useState('');
+
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState('');
+
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState('');
+
+  const [error, setError] =
+    useState('');
+
+  const [success, setSuccess] =
+    useState('');
+
+  const [loading, setLoading] =
+    useState(false);
+
+  // ========================================
+  // SEND RESET CODE
+  // ========================================
+
+  async function handleSendCode() {
     setError('');
     setSuccess('');
 
-    const cleanEmail = email.trim();
+    const cleanEmail =
+      email.trim().toLowerCase();
 
     if (!cleanEmail) {
-      setError('Please enter your email address.');
+      setError(
+        'Please enter your email address.'
+      );
       return;
     }
 
     if (!cleanEmail.includes('@')) {
-      setError('Please enter a valid email address.');
+      setError(
+        'Please enter a valid email address.'
+      );
       return;
     }
 
-    // Backend will send the real reset code later.
-    setSuccess(
-      'A password reset code will be sent to your email.'
+    try {
+      setLoading(true);
+
+      const response =
+        await apiRequest<ForgotPasswordResponse>(
+          '/auth/forgot-password',
+          {
+            method: 'POST',
+            body: {
+              email: cleanEmail,
+            },
+          }
+        );
+
+      setSuccess(response.message);
+      setStep('code');
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to send reset code.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ========================================
+  // VERIFY RESET CODE
+  // ========================================
+
+  async function handleVerifyCode() {
+    setError('');
+    setSuccess('');
+
+    const cleanCode =
+      code.trim();
+
+    if (!cleanCode) {
+      setError(
+        'Please enter the reset code.'
+      );
+      return;
+    }
+
+    if (
+      cleanCode.length !== 6 ||
+      !/^\d{6}$/.test(cleanCode)
+    ) {
+      setError(
+        'Reset code must contain 6 digits.'
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response =
+        await apiRequest<ForgotPasswordResponse>(
+          '/auth/verify-reset-code',
+          {
+            method: 'POST',
+            body: {
+              email:
+                email
+                  .trim()
+                  .toLowerCase(),
+
+              code: cleanCode,
+            },
+          }
+        );
+
+      setSuccess(response.message);
+      setStep('password');
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Invalid reset code.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ========================================
+  // RESET PASSWORD
+  // ========================================
+
+  async function handleResetPassword() {
+    setError('');
+    setSuccess('');
+
+    if (!newPassword.trim()) {
+      setError(
+        'Please enter your new password.'
+      );
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError(
+        'Password must contain at least 6 characters.'
+      );
+      return;
+    }
+
+    if (
+      newPassword !==
+      confirmPassword
+    ) {
+      setError(
+        'Passwords do not match.'
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response =
+        await apiRequest<ForgotPasswordResponse>(
+          '/auth/reset-password',
+          {
+            method: 'POST',
+            body: {
+              email:
+                email
+                  .trim()
+                  .toLowerCase(),
+
+              code: code.trim(),
+
+              newPassword,
+            },
+          }
+        );
+
+      setSuccess(response.message);
+      setStep('success');
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to reset password.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ========================================
+  // SCREEN TEXT
+  // ========================================
+
+  function getTitle() {
+    if (step === 'email') {
+      return 'Forgot Password?';
+    }
+
+    if (step === 'code') {
+      return 'Verify Code';
+    }
+
+    if (step === 'password') {
+      return 'New Password';
+    }
+
+    return 'Password Changed!';
+  }
+
+  function getSubtitle() {
+    if (step === 'email') {
+      return (
+        'No worries! Enter your email address ' +
+        "and we'll send you a code to reset your password."
+      );
+    }
+
+    if (step === 'code') {
+      return (
+        'Enter the 6-digit code sent to ' +
+        email.trim()
+      );
+    }
+
+    if (step === 'password') {
+      return (
+        'Create a new password for your Explain It account.'
+      );
+    }
+
+    return (
+      'Your password has been reset successfully. ' +
+      'You can now sign in with your new password.'
     );
   }
 
@@ -50,12 +292,18 @@ export default function ForgotPasswordScreen() {
       }
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={
+          styles.container
+        }
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
-            <Text style={styles.logo}>🔐</Text>
+            <Text style={styles.logo}>
+              {step === 'success'
+                ? '✅'
+                : '🔐'}
+            </Text>
           </View>
 
           <Text style={styles.appName}>
@@ -69,85 +317,383 @@ export default function ForgotPasswordScreen() {
 
         <View style={styles.card}>
           <Text style={styles.title}>
-            Forgot Password?
+            {getTitle()}
           </Text>
 
           <Text style={styles.subtitle}>
-            No worries! Enter your email address
-            and we'll send you a code to reset your
-            password.
+            {getSubtitle()}
           </Text>
 
-          <Text style={styles.label}>
-            Email
-          </Text>
+          {/* EMAIL STEP */}
 
-          <TextInput
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-              setError('');
-              setSuccess('');
-            }}
-            style={styles.input}
-            placeholder="example@email.com"
-            placeholderTextColor="#94A3B8"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+          {step === 'email' && (
+            <>
+              <Text style={styles.label}>
+                Email
+              </Text>
+
+              <TextInput
+                value={email}
+                onChangeText={(value) => {
+                  setEmail(value);
+                  setError('');
+                  setSuccess('');
+                }}
+                style={styles.input}
+                placeholder="example@email.com"
+                placeholderTextColor="#94A3B8"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+                onSubmitEditing={
+                  handleSendCode
+                }
+              />
+            </>
+          )}
+
+          {/* CODE STEP */}
+
+          {step === 'code' && (
+            <>
+              <Text style={styles.label}>
+                Reset Code
+              </Text>
+
+              <TextInput
+                value={code}
+                onChangeText={(value) => {
+                  const numbersOnly =
+                    value.replace(
+                      /\D/g,
+                      ''
+                    );
+
+                  setCode(
+                    numbersOnly.slice(
+                      0,
+                      6
+                    )
+                  );
+
+                  setError('');
+                }}
+                style={[
+                  styles.input,
+                  styles.codeInput,
+                ]}
+                placeholder="000000"
+                placeholderTextColor="#94A3B8"
+                keyboardType="number-pad"
+                maxLength={6}
+                editable={!loading}
+                onSubmitEditing={
+                  handleVerifyCode
+                }
+              />
+
+              <Pressable
+                disabled={loading}
+                style={styles.resendButton}
+                onPress={
+                  handleSendCode
+                }
+              >
+                <Text
+                  style={
+                    styles.resendText
+                  }
+                >
+                  Send a new code
+                </Text>
+              </Pressable>
+            </>
+          )}
+
+          {/* PASSWORD STEP */}
+
+          {step === 'password' && (
+            <>
+              <Text style={styles.label}>
+                New Password
+              </Text>
+
+              <TextInput
+                value={newPassword}
+                onChangeText={(value) => {
+                  setNewPassword(value);
+                  setError('');
+                }}
+                style={styles.input}
+                placeholder="At least 6 characters"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry
+                editable={!loading}
+              />
+
+              <Text style={styles.label}>
+                Confirm New Password
+              </Text>
+
+              <TextInput
+                value={confirmPassword}
+                onChangeText={(value) => {
+                  setConfirmPassword(
+                    value
+                  );
+                  setError('');
+                }}
+                style={styles.input}
+                placeholder="Repeat new password"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry
+                editable={!loading}
+                onSubmitEditing={
+                  handleResetPassword
+                }
+              />
+            </>
+          )}
+
+          {/* ERROR */}
 
           {error !== '' && (
             <View style={styles.errorBox}>
-              <Text style={styles.errorText}>
+              <Text
+                style={styles.errorText}
+              >
                 {error}
               </Text>
             </View>
           )}
 
-          {success !== '' && (
-            <View style={styles.successBox}>
-              <Text style={styles.successTitle}>
-                ✓ Request received
-              </Text>
+          {/* SUCCESS MESSAGE */}
 
-              <Text style={styles.successText}>
-                {success}
+          {success !== '' &&
+            step !== 'success' && (
+              <View
+                style={
+                  styles.successBox
+                }
+              >
+                <Text
+                  style={
+                    styles.successTitle
+                  }
+                >
+                  ✓ Success
+                </Text>
+
+                <Text
+                  style={
+                    styles.successText
+                  }
+                >
+                  {success}
+                </Text>
+              </View>
+            )}
+
+          {/* EMAIL BUTTON */}
+
+          {step === 'email' && (
+            <Pressable
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.sendButton,
+
+                loading &&
+                  styles.disabledButton,
+
+                pressed &&
+                  !loading &&
+                  styles.buttonPressed,
+              ]}
+              onPress={handleSendCode}
+            >
+              <Text
+                style={
+                  styles.sendButtonText
+                }
+              >
+                {loading
+                  ? 'Sending...'
+                  : 'Send Reset Code'}
               </Text>
-            </View>
+            </Pressable>
           )}
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.sendButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={handleSendCode}
-          >
-            <Text style={styles.sendButtonText}>
-              Send Reset Code
-            </Text>
-          </Pressable>
+          {/* VERIFY BUTTON */}
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.backButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={() =>
-              router.replace('/login')
-            }
-          >
-            <Text style={styles.backButtonText}>
-              ← Back to Sign In
-            </Text>
-          </Pressable>
+          {step === 'code' && (
+            <Pressable
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.sendButton,
+
+                loading &&
+                  styles.disabledButton,
+
+                pressed &&
+                  !loading &&
+                  styles.buttonPressed,
+              ]}
+              onPress={
+                handleVerifyCode
+              }
+            >
+              <Text
+                style={
+                  styles.sendButtonText
+                }
+              >
+                {loading
+                  ? 'Verifying...'
+                  : 'Verify Code'}
+              </Text>
+            </Pressable>
+          )}
+
+          {/* RESET BUTTON */}
+
+          {step === 'password' && (
+            <Pressable
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.sendButton,
+
+                loading &&
+                  styles.disabledButton,
+
+                pressed &&
+                  !loading &&
+                  styles.buttonPressed,
+              ]}
+              onPress={
+                handleResetPassword
+              }
+            >
+              <Text
+                style={
+                  styles.sendButtonText
+                }
+              >
+                {loading
+                  ? 'Changing Password...'
+                  : 'Reset Password'}
+              </Text>
+            </Pressable>
+          )}
+
+          {/* SUCCESS */}
+
+          {step === 'success' && (
+            <>
+              <View
+                style={
+                  styles.successBox
+                }
+              >
+                <Text
+                  style={
+                    styles.successTitle
+                  }
+                >
+                  ✓ Password reset
+                </Text>
+
+                <Text
+                  style={
+                    styles.successText
+                  }
+                >
+                  {success ||
+                    'Password reset successfully.'}
+                </Text>
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.sendButton,
+
+                  pressed &&
+                    styles.buttonPressed,
+                ]}
+                onPress={() =>
+                  router.replace(
+                    '/login'
+                  )
+                }
+              >
+                <Text
+                  style={
+                    styles.sendButtonText
+                  }
+                >
+                  Sign In
+                </Text>
+              </Pressable>
+            </>
+          )}
+
+          {/* BACK BUTTON */}
+
+          {step !== 'success' && (
+            <Pressable
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.backButton,
+
+                pressed &&
+                  !loading &&
+                  styles.buttonPressed,
+              ]}
+              onPress={() => {
+                if (
+                  step === 'password'
+                ) {
+                  setStep('code');
+                  setError('');
+                  setSuccess('');
+                  return;
+                }
+
+                if (step === 'code') {
+                  setStep('email');
+                  setCode('');
+                  setError('');
+                  setSuccess('');
+                  return;
+                }
+
+                router.replace(
+                  '/login'
+                );
+              }}
+            >
+              <Text
+                style={
+                  styles.backButtonText
+                }
+              >
+                {step === 'email'
+                  ? '← Back to Sign In'
+                  : '← Back'}
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         <View style={styles.helpCard}>
           <Text style={styles.helpText}>
-            💡 Make sure you enter the email
-            associated with your account.
+            {step === 'email'
+              ? '💡 Make sure you enter the email associated with your account.'
+              : step === 'code'
+                ? '📧 Check your inbox for the latest 6-digit reset code.'
+                : step === 'password'
+                  ? '🔒 Choose a password with at least 6 characters.'
+                  : '🎉 Your account is ready to use again.'}
           </Text>
         </View>
       </ScrollView>
@@ -251,6 +797,24 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
 
+  codeInput: {
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 8,
+  },
+
+  resendButton: {
+    alignSelf: 'flex-end',
+    marginTop: 10,
+  },
+
+  resendText: {
+    color: '#7C3AED',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
   errorBox: {
     backgroundColor: '#FEF2F2',
     borderRadius: 10,
@@ -297,6 +861,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
+  },
+
+  disabledButton: {
+    opacity: 0.6,
   },
 
   backButton: {

@@ -16,20 +16,29 @@ import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 
 export default function SignUpScreen() {
-  const { signup } = useAuth();
+  const {
+    signup,
+    loading,
+  } = useAuth();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] =
+    useState('');
+
+  const [email, setEmail] =
+    useState('');
+
   const [password, setPassword] =
     useState('');
+
   const [
     confirmPassword,
     setConfirmPassword,
   ] = useState('');
 
-  const [error, setError] = useState('');
+  const [error, setError] =
+    useState('');
 
-  function handleSignup() {
+  async function handleSignup() {
     setError('');
 
     if (
@@ -65,14 +74,19 @@ export default function SignUpScreen() {
       return;
     }
 
-    const success = signup(
-      name,
-      email,
-      password
-    );
+    const success =
+      await signup(
+        name,
+        email,
+        password
+      );
 
     if (success) {
       router.replace('/home');
+    } else {
+      setError(
+        'Unable to create account. The email may already be registered.'
+      );
     }
   }
 
@@ -92,6 +106,7 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Pressable
+          disabled={loading}
           style={styles.backButton}
           onPress={() =>
             router.replace('/login')
@@ -130,6 +145,7 @@ export default function SignUpScreen() {
             style={styles.input}
             placeholder="Your name"
             placeholderTextColor="#94A3B8"
+            editable={!loading}
           />
 
           <Text style={styles.label}>
@@ -144,6 +160,8 @@ export default function SignUpScreen() {
             placeholderTextColor="#94A3B8"
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
           />
 
           <Text style={styles.label}>
@@ -157,6 +175,7 @@ export default function SignUpScreen() {
             placeholder="At least 6 characters"
             placeholderTextColor="#94A3B8"
             secureTextEntry
+            editable={!loading}
           />
 
           <Text style={styles.label}>
@@ -172,6 +191,8 @@ export default function SignUpScreen() {
             placeholder="Repeat password"
             placeholderTextColor="#94A3B8"
             secureTextEntry
+            editable={!loading}
+            onSubmitEditing={handleSignup}
           />
 
           {error !== '' && (
@@ -183,15 +204,23 @@ export default function SignUpScreen() {
           )}
 
           <Pressable
+            disabled={loading}
             style={({ pressed }) => [
               styles.button,
+
+              loading &&
+                styles.disabledButton,
+
               pressed &&
+                !loading &&
                 styles.buttonPressed,
             ]}
             onPress={handleSignup}
           >
             <Text style={styles.buttonText}>
-              Create Account
+              {loading
+                ? 'Creating Account...'
+                : 'Create Account'}
             </Text>
           </Pressable>
 
@@ -201,6 +230,7 @@ export default function SignUpScreen() {
             </Text>
 
             <Pressable
+              disabled={loading}
               onPress={() =>
                 router.replace('/login')
               }
@@ -331,6 +361,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     marginTop: 23,
+  },
+
+  disabledButton: {
+    opacity: 0.6,
   },
 
   buttonPressed: {
