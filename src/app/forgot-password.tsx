@@ -1,47 +1,43 @@
 import { useState } from 'react';
 
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 import { router } from 'expo-router';
 
-import { useAuth } from '@/context/AuthContext';
-
-export default function LoginScreen() {
-  const { login } = useAuth();
-
+export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  function handleLogin() {
+  function handleSendCode() {
     setError('');
+    setSuccess('');
 
-    if (!email.trim() || !password.trim()) {
-      setError(
-        'Please enter your email and password.'
-      );
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail) {
+      setError('Please enter your email address.');
       return;
     }
 
-    const success = login(
-      email,
-      password
-    );
-
-    if (success) {
-      router.replace('/home');
-    } else {
-      setError('Unable to sign in.');
+    if (!cleanEmail.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
     }
+
+    // Backend will send the real reset code later.
+    setSuccess(
+      'A password reset code will be sent to your email.'
+    );
   }
 
   return (
@@ -54,16 +50,12 @@ export default function LoginScreen() {
       }
     >
       <ScrollView
-        contentContainerStyle={
-          styles.container
-        }
+        contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
-            <Text style={styles.logo}>
-              🧠
-            </Text>
+            <Text style={styles.logo}>🔐</Text>
           </View>
 
           <Text style={styles.appName}>
@@ -77,12 +69,13 @@ export default function LoginScreen() {
 
         <View style={styles.card}>
           <Text style={styles.title}>
-            Welcome Back 👋
+            Forgot Password?
           </Text>
 
           <Text style={styles.subtitle}>
-            Sign in to continue your learning
-            journey.
+            No worries! Enter your email address
+            and we'll send you a code to reset your
+            password.
           </Text>
 
           <Text style={styles.label}>
@@ -91,99 +84,70 @@ export default function LoginScreen() {
 
           <TextInput
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(value) => {
+              setEmail(value);
+              setError('');
+              setSuccess('');
+            }}
             style={styles.input}
             placeholder="example@email.com"
             placeholderTextColor="#94A3B8"
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
           />
-
-          <Text style={styles.label}>
-            Password
-          </Text>
-
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-            placeholder="Enter your password"
-            placeholderTextColor="#94A3B8"
-            secureTextEntry
-          />
-
-          <View
-            style={
-              styles.forgotPasswordContainer
-            }
-          >
-            <Pressable
-              onPress={() =>
-                router.push(
-                  '/forgot-password'
-                )
-              }
-            >
-              <Text
-                style={
-                  styles.forgotPasswordText
-                }
-              >
-                Forgot Password?
-              </Text>
-            </Pressable>
-          </View>
 
           {error !== '' && (
             <View style={styles.errorBox}>
-              <Text style={styles.error}>
+              <Text style={styles.errorText}>
                 {error}
+              </Text>
+            </View>
+          )}
+
+          {success !== '' && (
+            <View style={styles.successBox}>
+              <Text style={styles.successTitle}>
+                ✓ Request received
+              </Text>
+
+              <Text style={styles.successText}>
+                {success}
               </Text>
             </View>
           )}
 
           <Pressable
             style={({ pressed }) => [
-              styles.loginButton,
-              pressed &&
-                styles.buttonPressed,
+              styles.sendButton,
+              pressed && styles.buttonPressed,
             ]}
-            onPress={handleLogin}
+            onPress={handleSendCode}
           >
-            <Text
-              style={
-                styles.loginButtonText
-              }
-            >
-              Sign In
+            <Text style={styles.sendButtonText}>
+              Send Reset Code
             </Text>
           </Pressable>
 
-          <View style={styles.signupRow}>
-            <Text
-              style={styles.signupText}
-            >
-              Don't have an account?
+          <Pressable
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() =>
+              router.replace('/login')
+            }
+          >
+            <Text style={styles.backButtonText}>
+              ← Back to Sign In
             </Text>
-
-            <Pressable
-              onPress={() =>
-                router.push('/signup')
-              }
-            >
-              <Text
-                style={styles.signupLink}
-              >
-                Create Account
-              </Text>
-            </Pressable>
-          </View>
+          </Pressable>
         </View>
 
-        <View style={styles.quoteCard}>
-          <Text style={styles.quote}>
-            ✨ Every expert was once a
-            beginner.
+        <View style={styles.helpCard}>
+          <Text style={styles.helpText}>
+            💡 Make sure you enter the email
+            associated with your account.
           </Text>
         </View>
       </ScrollView>
@@ -219,7 +183,7 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    fontSize: 43,
+    fontSize: 40,
   },
 
   appName: {
@@ -255,9 +219,9 @@ const styles = StyleSheet.create({
   },
 
   title: {
+    color: '#1E293B',
     fontSize: 25,
     fontWeight: '800',
-    color: '#1E293B',
   },
 
   subtitle: {
@@ -287,17 +251,6 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
 
-  forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginTop: 10,
-  },
-
-  forgotPasswordText: {
-    color: '#7C3AED',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-
   errorBox: {
     backgroundColor: '#FEF2F2',
     borderRadius: 10,
@@ -305,12 +258,34 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
 
-  error: {
+  errorText: {
     color: '#DC2626',
     fontSize: 13,
   },
 
-  loginButton: {
+  successBox: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    borderRadius: 12,
+    padding: 13,
+    marginTop: 14,
+  },
+
+  successTitle: {
+    color: '#16A34A',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+
+  successText: {
+    color: '#15803D',
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 3,
+  },
+
+  sendButton: {
     backgroundColor: '#7C3AED',
     borderRadius: 14,
     paddingVertical: 15,
@@ -318,40 +293,43 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
 
-  buttonPressed: {
-    opacity: 0.85,
-  },
-
-  loginButtonText: {
+  sendButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
   },
 
-  signupRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginTop: 21,
-    gap: 5,
+  backButton: {
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+    backgroundColor: '#F5F3FF',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 11,
   },
 
-  signupText: {
-    color: '#64748B',
-  },
-
-  signupLink: {
+  backButtonText: {
     color: '#7C3AED',
+    fontSize: 14,
     fontWeight: '800',
   },
 
-  quoteCard: {
-    marginTop: 25,
-    alignItems: 'center',
+  buttonPressed: {
+    opacity: 0.82,
   },
 
-  quote: {
+  helpCard: {
+    width: '100%',
+    maxWidth: 440,
+    alignSelf: 'center',
+    marginTop: 22,
+  },
+
+  helpText: {
     color: '#64748B',
     textAlign: 'center',
+    lineHeight: 20,
+    fontSize: 13,
   },
 });
